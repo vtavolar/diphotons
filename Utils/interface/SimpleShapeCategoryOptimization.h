@@ -51,7 +51,7 @@ public:
     std::string name() const { return name_; };
 
     void setShape( int x );
-    shape_t getShape() { return shape_; };
+    int getShape() { return shape_; };
 
     void minEvents( double x ) { minEvents_ = x; };
     double minEvents() { return minEvents_; };

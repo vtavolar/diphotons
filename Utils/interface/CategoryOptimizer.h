@@ -30,6 +30,8 @@ public:
     virtual void setShape( int x ) {};
 
     virtual std::string name() const { return ""; };
+    
+    virtual void minEvents(double a){};
 
 protected:
     type_t type_;

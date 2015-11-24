@@ -251,7 +251,9 @@ def modelBuilders(trees, type, obs, varlist, sellist, weights, shapes, minevents
         ### if name in weights:
         ###     weight = weights[name]
         ### tree.SetAlias("_weight",weight)
+        print "about to create secondordermodelbuilder"
         modelBuilder = ROOT.SecondOrderModelBuilder(type, modelName, obs, tree, varlist, sellist, "_weight")
+        print modelBuilder, modelBuilder.getModel()
         if name in shapes:
             modelBuilder.getModel().setShape( getattr(ROOT.SecondOrderModel,shapes[name]) )
         if name in minevents:
@@ -450,11 +452,12 @@ def optimizeMultiDim(options,args):
     print
     signals,sigconstr = modelBuilders( sigTrees, ROOT.AbsModel.sig, obs, varlist, sellist,
                                        getattr(options,"weights",{}), getattr(options,"shapes",{}), {}, {} )
+    print "before bkg modelbuilders"
     backgrounds,bkgconstr = modelBuilders( bkgTrees, ROOT.AbsModel.bkg, obs, varlist, sellist,
                                            getattr(options,"weights",{}), getattr(options,"shapes",{}),
                                            getattr(options,"minevents",{},), getattr(options,"constrained",{}),
                                            )
-    
+    print "after bkg modelbuilders"
     if options.saveCompactTree:
         for model in signals+backgrounds:
             model.getTree().Write()
@@ -748,8 +751,12 @@ def optimizeMultiDim(options,args):
         if not os.path.exists("%s/workspaces" % options.outdir):
             os.mkdir("%s/workspaces" % options.outdir)
         for ncat in ncats:
-            print commands.getoutput("%s/makeWorkspace.py -d %s/cat_opt.json -n %d -i %s -o %s/workspaces/ws_ncat%d.root" % ( wd, options.outdir, int(ncat), tmpname, options.outdir, int(ncat) ))
-            
+            cmd = "%s/makeWorkspace.py -d %s/cat_opt.json -n %d -i %s -o %s/workspaces/ws_ncat%d.root --settings setup.json" % ( wd, options.outdir, int(ncat), tmpname, options.outdir, int(ncat))
+            print cmd
+            print commands.getoutput(cmd)
+            cmd = "%s/plotDatasets.py  -i %s/workspaces/ws_ncat%d.root -o %s/workspaces/ -n %d" % (wd, options.outdir,  int(ncat), options.outdir,  int(ncat))
+            print cmd
+            print commands.getoutput(cmd)
     return ws
 
 # -----------------------------------------------------------------------------------------------------------

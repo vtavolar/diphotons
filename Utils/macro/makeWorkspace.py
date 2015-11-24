@@ -77,7 +77,9 @@ def mkPdf(name,ord,cat,label,ws):
 
     norm = ws.factory("model_%scat%d_norm[0,1.e+6]" % (label,cat))
     ## extpdf = ROOT.RooExtendPdf("%s%d_cat%d_extpdf" % (name,ord,cat), "%s%d_cat%d_extpdf" % (name,ord,cat), pdf, norm)
-    extpdf = ROOT.RooExtendPdf("model_%scat%d" % (label,cat), "model_%scat%d" % (label,cat), pdf, norm)
+    ## extpdf = ROOT.RooExtendPdf("model_%scat%d" % (label,cat), "model_%scat%d" % (label,cat), pdf, norm)
+    pdf.SetName("model_%scat%d" % (label,cat))
+    extpdf = ROOT.RooExtendPdf("ext_model_%scat%d" % (label,cat), "ext_model_%scat%d" % (label,cat), pdf, norm)
     getattr(ws,"import")(pdf, ROOT.RooFit.RecycleConflictNodes())
     getattr(ws,"import")(extpdf, ROOT.RooFit.RecycleConflictNodes())
     
@@ -140,7 +142,7 @@ def main(options,args):
         catvar += "+%d * (cat%d) " % ( icat, icat )
 
     catvar = ROOT.TCut(catvar)
-    selcuts = summary[options.ncat]["selections"]
+    selcuts = summary[options.ncat].get("selections",[])
     selection = ROOT.TCut("cut%d" % (ncat-1) )
     for isel,sel in enumerate(options.selections):
         selection *= ROOT.TCut("%s > %g" % (sel,selcuts[isel]))
@@ -150,7 +152,7 @@ def main(options,args):
     for name,sel in cuts+cats+[("cat",catvar),("selection",selection)]:
         print name, sel.GetTitle()
         
-    tmp = ROOT.TFile.Open("/tmp/musella/tmp.root","recreate")
+    tmp = ROOT.TFile.Open("/tmp/vtavolar/tmp.root","recreate")
     for sname,samp in samples.iteritems():
         print "Reading ", sname, samp
         tlist = ROOT.TList()
@@ -187,7 +189,8 @@ def main(options,args):
         for tname, tsel in todos:
             mname = name
             if tname != "": mname += "_%s" % tname
-            sel = ROOT.TCut("_weight") * selection
+            sel = "_weight*(%s)" % selection
+            print sel
             if tsel != "":
                 sel *= ROOT.TCut(tsel)            
             model = ROOT.TH2F("model_%s" % mname, "model_%s" % mname, nbins, obsmin, obsmax, ncat, 0, ncat )
@@ -224,7 +227,7 @@ def main(options,args):
             print slice.Integral()
             data = ROOT.RooDataHist(slice.GetName(),slice.GetName(),ROOT.RooArgList(mgg),slice)
             print data.sumEntries()
-            getattr(ws,"import")(data)
+            getattr(ws,"import")(data, ROOT.RooCmdArg())
             if "bkg" in name:
                 norm = slice.Integral()
                 order = 0
@@ -236,7 +239,7 @@ def main(options,args):
                 pdf = mkPdf("cheb",order+2,icat,name.replace("model_",""),ws)
                 pdf.fitTo(data,ROOT.RooFit.Strategy(1),ROOT.RooFit.PrintEvalErrors(-1))
                 pdf.fitTo(data,ROOT.RooFit.Strategy(2))
-
+                
                 
     ws.writeToFile(options.out)
 
@@ -329,7 +332,7 @@ if __name__ == "__main__":
                         ),
             make_option("-m", "--maxw",
                         action="store", type="float", dest="maxw",
-                        default=50.,
+                        default=-1.,
                         help="number of categories",
                         ),
             make_option("-n", "--ncat",

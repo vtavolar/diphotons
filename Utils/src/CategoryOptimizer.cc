@@ -414,7 +414,9 @@ double CategoryOptimizer::optimizeNCat( int ncat, const double *cutoffs, bool dr
                 if( idim != parToDim.end() ) {
                     xset = &xp[0];
                 }
-                for( unsigned int jstep = 0; jstep < nstep; ++jstep ) {
+                //                for( unsigned int jstep = 0; jstep < nstep; ++jstep ) {
+                //nstep-1: quick fix to exclude scan at -1 from graph
+                for( unsigned int jstep = 0; jstep < nstep-1; ++jstep ) {
                     if( idim != parToDim.end() ) {
                         xp[jstep] = transformations_[idim->second]->eval( x[jstep] );
                     }
@@ -429,6 +431,8 @@ double CategoryOptimizer::optimizeNCat( int ncat, const double *cutoffs, bool dr
                     }
                 }
                 TGraph gr( nstep, xset, &y[0] );
+                gr.Sort();
+                gr.RemovePoint(0);
                 gr.Draw( "APL" );
                 gr.GetXaxis()->SetTitle( minimizer_->VariableName( ipar ).c_str() );
                 canv.SaveAs( Form( "scan_ncat%d_%s.png", ncat,  minimizer_->VariableName( ipar ).c_str() ) );

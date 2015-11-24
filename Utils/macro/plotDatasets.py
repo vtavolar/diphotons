@@ -59,12 +59,19 @@ def main(options,args):
             sig  = ws.data("sig_%s" % cat)
             rms  = sqrt(sig.covariance( mass, mass ))
             
-            bkg.plotOn(fframe,ROOT.RooFit.LineColor(colors[ifile]),ROOT.RooFit.Binning(80))
+            bkg.plotOn(fframe,ROOT.RooFit.Binning(80), ROOT.RooFit.Invisible())
             model.plotOn(fframe,ROOT.RooFit.LineColor(colors[ifile]))
             bkgPerGeV = fframe.getObject( int(fframe.numItems() - 1) ).Eval(125.);
             
-            deriv.plotOn(dframe,ROOT.RooFit.LineColor(colors[ifile]),ROOT.RooFit.Range(101,179))
 
+            deriv.plotOn(dframe,ROOT.RooFit.LineColor(colors[ifile]),ROOT.RooFit.Range(101,179))
+            
+            mass.setRange("unblind_up", 135, 180)            
+            bkg.plotOn(fframe,ROOT.RooFit.LineColor(colors[ifile]),ROOT.RooFit.Binning(80), ROOT.RooFit.CutRange("unblind_up"))
+            mass.setRange("unblind_down", 100, 115)            
+            bkg.plotOn(fframe,ROOT.RooFit.LineColor(colors[ifile]),ROOT.RooFit.Binning(80), ROOT.RooFit.CutRange("unblind_down"))
+            fframe.SetMinimum(0.001)
+            
             txt.append( "-----------------------------------------------------------------------------" )
             txt.append( "%s" % fname )
             txt.append( "-----------------------------------------------------------------------------" )
@@ -94,10 +101,10 @@ def main(options,args):
         dframe.Draw()
 
         for fmt in ["png"]:
-            for c in fcanv,dcanv:
-                c.SaveAs( "%s.%s" % ( c.GetName(), fmt )  )
+            for c in [fcanv]:
+                c.SaveAs( "ncat%d_%s.%s" % ( options.ncat, c.GetName(), fmt )  )
                 
-        tout = open("%s.txt" % fcanv.GetName(),"w+")
+        tout = open("ncat%d_%s.txt" % (options.ncat, fcanv.GetName()),"w+")
         for li in txt:
             tout.write("%s\n" % li)
         tout.close()

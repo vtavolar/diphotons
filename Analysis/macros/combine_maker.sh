@@ -4,7 +4,8 @@
 version=$1 && shift
 
 fitname=2D 
-www=~/www/exo/spring15_7412
+#www=~/www/exo/spring15_7415
+www=~/www/exo/moriond16
 if [[ $(whoami) == "mquittna" ]]; then
     www=/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/
 fi
@@ -15,6 +16,7 @@ default_model=""
 opts=""
 input_opts=""
 data_version=""
+prepare=""
 while [[ -n $1 ]]; do
     case $1 in
 	--fit-name)
@@ -28,6 +30,9 @@ while [[ -n $1 ]]; do
 	--verbose)
 	    verbose="--verbose"
 	    opts="$opts --verbose"
+	    ;;
+	--prepare-*)
+	    prepare="$prepare $1"
 	    ;;
 	--redo-input)
 	    rerun="1"
@@ -72,6 +77,11 @@ while [[ -n $1 ]]; do
 	    fwhm="$2"
 	    opts="$opts $1"
 	    ;;
+	--only-coup*)
+	    log_label="${log_label}$(echo $2 | tr ',' '_')"
+	    opts="$opts $1 $2"
+	    shift
+	    ;;
 	--lumi*)
 	    lumi=$2
 	    shift
@@ -84,6 +94,9 @@ while [[ -n $1 ]]; do
 	--*-file)
 	    input_opts="$input_opts $1 $2"
 	    shift
+	    ;;
+	--fit-background)
+	    just_fit_bkg="1"
 	    ;;
 	*)
 	    opts="$opts $1"
@@ -115,8 +128,9 @@ label="$shapes"
 input=${version}_${fitname}_final_ws.root
 input_log=${version}_${fitname}_final_ws.log
 treesdir=~musella/public/workspace/exo/
-ls $treesdir/$version
-[[ ! -d $treesdir/$version ]] && treesdir=$PWD
+## ls $treesdir/$version
+ls $treesdir/$input_folder
+[[ ! -d $treesdir/$input_folder ]] && treesdir=$PWD
 workdir=${version}_${fitname}_${label}_lumi_${lumi}
 
 if [[ -n $bias ]]; then
@@ -139,7 +153,7 @@ if [[ -n $rerun  ]] || [[ ! -f $input ]]; then
         subset="2D,singlePho"
         mix="--mix-templates"
     fi
-    ./templates_maker.py --load templates_maker.json,templates_maker_prepare.json --only-subset $subset $mix --input-dir $treesdir/$input_folder -o $input $verbose $input_opts 2>&1 | tee $input_log
+    ./templates_maker.py --load templates_maker.json,templates_maker_prepare.json --only-subset $subset $mix --input-dir $treesdir/$input_folder $prepare -o $input $verbose $input_opts 2>&1 | tee $input_log
     echo "**************************************************************************************************************************"
 elif [[ -n $mix ]]; then
     echo "**************************************************************************************************************************"
@@ -154,16 +168,28 @@ echo "**************************************************************************
 echo "running model creation"
 echo "**************************************************************************************************************************"
 
-./combine_maker.py \
-    --fit-name $fitname  --luminosity $lumi  \
-    --fit-background \
-    --generate-signal \
-    --generate-datacard \
-    --binned-data-in-datacard \
-    --read-ws $input \
-    --ws-dir $workdir \
-    -O $www/$version/$workdir \
-    -o $workdir.root  \
-    --cardname datacard_${workdir}.txt $opts 2>&1 | tee $workdir/combine_maker.log
+if [[ -z $just_fit_bkg ]]; then
+    ##--binned-data-in-datacard \
+    ./combine_maker.py \
+	--fit-name $fitname  --luminosity $lumi  --lumi $lumi \
+	--fit-background \
+	--generate-signal \
+	--generate-datacard \
+	--read-ws $input \
+	--ws-dir $workdir \
+	-O $www/$version/$workdir \
+	-o $workdir.root  \
+	--cardname datacard_${workdir}.txt $opts 2>&1 | tee $workdir/combine_maker${log_label}.log
+else
+    ./combine_maker.py \
+	--fit-name $fitname  --luminosity $lumi  --lumi $lumi \
+	--fit-background \
+	--read-ws $input \
+	--ws-dir $workdir \
+	-O $www/$version/$workdir \
+	-o $workdir.root  \
+	$opts 2>&1 | tee $workdir/combine_maker_bkg_only${log_label}.log
+    
+fi
 
 echo "**************************************************************************************************************************"

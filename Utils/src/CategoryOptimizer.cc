@@ -402,7 +402,12 @@ double CategoryOptimizer::optimizeNCat( int ncat, const double *cutoffs, bool dr
                 int ipar = paramsToScan[ii].first;
                 std::pair<double, double> rng = paramsToScan[ii].second;
                 /// std::cout << ipar << " " << rng.first << " " << rng.second << std::endl;
+                //                double rnglow = 2*rng.first - (rng.second-rng.first)/2.;
+                //                double rnghi = 2*rng.second - (rng.second-rng.first)/2.;
                 minimizer_->Scan( ipar, nstep, &x[0], &y[0], rng.first, rng.second );
+                //minimizer_->Scan( ipar, nstep, &x[0], &y[0], rnglow, rnghi );//extended range for debug purposes
+                std::cout<<"category "<<ncat<<"_"<< minimizer_->VariableName( ipar ).c_str()<<": rng.first "<<rng.first<<", rng.second "<<rng.second<<std::endl;
+                //                std::cout<<"category "<<ncat<<"_"<< minimizer_->VariableName( ipar ).c_str()<<": rnglow "<<rnglow<<", rnghi "<<rnghi<<std::endl;
                 /// std::copy( &x[0], &x[nstep-1], std::ostream_iterator<double>(std::cout, ",") );
                 /// std::cout << std::endl;
                 /// std::copy( &y[0], &y[nstep-1], std::ostream_iterator<double>(std::cout, ",") );
@@ -419,20 +424,32 @@ double CategoryOptimizer::optimizeNCat( int ncat, const double *cutoffs, bool dr
                 for( unsigned int jstep = 0; jstep < nstep-1; ++jstep ) {
                     if( idim != parToDim.end() ) {
                         xp[jstep] = transformations_[idim->second]->eval( x[jstep] );
+                        std::cout<<"xp[jstep] = "<<xp[jstep]<<std::endl;
                     }
                     if( y[jstep] >= 0 ) {
+                        std::cout<<"y[jstep] is >=0"<<std::endl;
                         int dir = jstep > nstep / 2 ? -1 : 1;
                         int kstep = jstep + dir;
+                        std::cout<<"so now instead of jstep = "<<jstep<<" we use kstep = "<<kstep<<std::endl;
                         while( kstep < ( int )nstep && kstep >= 0 ) {
                             if( y[kstep] < 0 ) { break; }
                             kstep += dir;
                         }
+                        std::cout<<"and after the loop choose kstep = "<<kstep<<std::endl;
                         y[jstep] = y[kstep];
+                        std::cout<<"so in the end we have y[jstep] = "<<y[jstep]<<", xset[jstep] = "<<xset[jstep]<<std::endl;
                     }
                 }
                 TGraph gr( nstep, xset, &y[0] );
+                for(unsigned int i=0; i<nstep;i++){
+                    std::cout<<"x = "<<xset[i]<<", y = "<<y[i]<<std::endl;
+                }
+                gr.RemovePoint(nstep-1);
                 gr.Sort();
                 gr.RemovePoint(0);
+                gr.Print();
+                gr.SetMarkerStyle(20);
+                gr.SetMarkerSize(0.9);
                 gr.Draw( "APL" );
                 gr.GetXaxis()->SetTitle( minimizer_->VariableName( ipar ).c_str() );
                 canv.SaveAs( Form( "scan_ncat%d_%s.png", ncat,  minimizer_->VariableName( ipar ).c_str() ) );
@@ -455,6 +472,7 @@ double CategoryOptimizer::optimizeNCat( int ncat, const double *cutoffs, bool dr
         std::copy( x, x + minimizer_->NDim(), std::ostream_iterator<double>( std::cout, "," ) );
         std::cout << std::endl;
         best = minimizer_->MinValue();
+        std::cout<<"minimizer print results"<<std::endl;
         minimizer_->PrintResults();
     } else {
         best = theFom.DoEval( &bestFit[0] );

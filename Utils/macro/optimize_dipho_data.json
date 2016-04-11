@@ -40,7 +40,7 @@
         "###" : "----------------------------------------------------------------------------------------------",
         "#variables"           : [["nlsMoM", [-1.5,-0.08,0.01],0.0,[-1.0,0.0]]
                                  ],
-        "variables"           : [["result", [-1.0,1.01,0.0001],0.0]
+        "variables"           : [["result", [-1.0,1.01,0.01],0.0]
                                  ],
         "range"               : [2,3,4,5,6],
 	
@@ -126,7 +126,7 @@
                                  ]
             },
         
-        "weights"             : { "sigRv" : "(weight*lumiFactor)*1.899", "sigWv" : "(weight*lumiFactor)*1.898", "bkg" : "weight"  },
+        "weights"             : { "sigRv" : "(weight*lumiFactor)*2.21", "sigWv" : "(weight*lumiFactor)*2.21", "bkg" : "weight"  },
         "##weights"             : { "sig" : "(myweight*lumiFactor)", "bkg" : "myweight*lumiFactor"  }, 
         "##" : "'Ultraviolet' cutoff in number of events",
         "minevents"           : { "sigRv" : 0.1, "sigWv" : 0.01, "bkg" : 10.0  },

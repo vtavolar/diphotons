@@ -31,6 +31,9 @@ def mkcheb(ord,cat,label,ws,var="CMS_hgg_mass"):
         }
     pdf = ROOT.RooChebychev("cheb%(label)s%(cat)d_%(ord)d" % names,  "cheb%(label)s%(cat)d_%(ord)d" % names,
                             ws.var(var), ROOT.RooArgList(*norms) )
+    print 'here search this'
+    print names
+    pdf.Print()
     pdfs.append(pdf)
     objs.append( [pdf, norms] )
     return [ROOT.RooFit.RooConst(1.)], pdfs 
@@ -57,6 +60,9 @@ def mkpol(ord,cat,label,ws,var="CMS_hgg_mass"):
         }
     pdf = ROOT.RooBernstein("pol%(label)s%(cat)d_%(ord)d" % names,  "pol%(label)s%(cat)d_%(ord)d" % names,
                             ws.var(var), ROOT.RooArgList(*norms) )
+    print 'here search this'
+    print names
+    pdf.Print()
     pdfs.append(pdf)
     objs.append( [pdf, norms] )
     return [ROOT.RooFit.RooConst(1.)], pdfs 
@@ -235,8 +241,8 @@ def main(options,args):
                     if order >= len(poly)-1:
                         break
                     order += 1
-                ## pdf = mkPdf("pol",order+2,icat,name.replace("model_",""),ws)
-                pdf = mkPdf("cheb",order+2,icat,name.replace("model_",""),ws)
+                pdf = mkPdf("pol",order+2,icat,name.replace("model_",""),ws)
+                ##pdf = mkPdf("cheb",order+2,icat,name.replace("model_",""),ws)
                 pdf.fitTo(data,ROOT.RooFit.Strategy(1),ROOT.RooFit.PrintEvalErrors(-1))
                 pdf.fitTo(data,ROOT.RooFit.Strategy(2))
                 

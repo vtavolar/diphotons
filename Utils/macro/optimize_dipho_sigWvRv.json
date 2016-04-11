@@ -40,7 +40,7 @@
         "###" : "----------------------------------------------------------------------------------------------",
         "#variables"           : [["nlsMoM", [-1.5,-0.08,0.01],0.0,[-1.0,0.0]]
                                  ],
-        "variables"           : [["BDT", [-1.0,1.01,0.0001],0.0]
+        "variables"           : [["BDT", [-1.0,1.0,0.01],0.0]
                                  ],
         "range"               : [2,3,4,5,6],
 	
@@ -107,7 +107,7 @@
             },
         
         "backgrounds"        : { 
-        "bkg"                 : [["TestTree","classID == 1 && Entry$%%1==0 && processIndex!=7"]
+        "bkg"                 : [["TestTree","classID == 1 && Entry$%%1==0 && processIndex!=7 && processIndex!=71"]
                                  ]
             },
         
@@ -120,7 +120,7 @@
                                  ]
             },
         
-        "weights"             : { "sigRv" : "(myweight*lumiFactor)", "sigWv" : "(myweight*lumiFactor)", "bkg" : "(myweight*lumiFactor)"  },
+        "weights"             : { "sigRv" : "(myweight*lumiFactor*2.6*2)", "sigWv" : "(myweight*lumiFactor*2.6*2)", "bkg" : "(myweight*lumiFactor*2.6*2)"  },
         "##weights"             : { "sig" : "(myweight*lumiFactor)", "bkg" : "myweight*lumiFactor"  }, 
         "##" : "'Ultraviolet' cutoff in number of events",
         "minevents"           : { "sigRv" : 0.1, "sigWv" : 0.01, "bkg" : 10.0  },

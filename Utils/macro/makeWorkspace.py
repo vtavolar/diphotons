@@ -107,6 +107,10 @@ def main(options,args):
     fin = ROOT.TFile.Open(options.file)
 
     samples = { "sig" : ["sigRv","sigWv"] , "bkg" : ["bkg"] }
+#    categs = ["_cat0", "_cat1", "_cat2"]
+    if getattr(options,"subcategories",None):
+        print "we have subcategories"
+        print options.subcategories
     trees = {}
 
     catdef = open(options.catdef)
@@ -159,16 +163,29 @@ def main(options,args):
         print name, sel.GetTitle()
         
     tmp = ROOT.TFile.Open("/tmp/vtavolar/tmp.root","recreate")
+
     for sname,samp in samples.iteritems():
         print "Reading ", sname, samp
         tlist = ROOT.TList()
+        tlist.Print()
         for name in samp:
-            tree = fin.Get(name)
-            tlist.Add(tree)
+            if getattr(options,"subcategories",None):
+                for catn, catc in options.subcategories:
+                    newname = name+"_"+catn
+                    print newname
+                    tree = fin.Get(newname)
+                    tlist.Add(tree)
+            else:
+                newname=name
+                print newname
+                tree = fin.Get(newname)
+                tlist.Add(tree)
+            
         tout=ROOT.TTree.MergeTrees(tlist)
         tout.SetName(sname)
         trees[sname] = tout
-            
+    
+    print trees
     models = {}
     allcats = []
     if getattr(options,"subcategories",None):
@@ -194,11 +211,17 @@ def main(options,args):
 
         for tname, tsel in todos:
             mname = name
+            print mname
             if tname != "": mname += "_%s" % tname
+            print tname
             sel = "_weight*(%s)" % selection
             print sel
             if tsel != "":
-                sel *= ROOT.TCut(tsel)            
+                #sel *= ROOT.TCut(tsel)            
+                #sel *= "(%s)*(%s)" % (sel,tsel)            
+                print "sel cut is",
+                sel = "(%s)*(%s)" % (sel,tsel)            
+                print sel
             model = ROOT.TH2F("model_%s" % mname, "model_%s" % mname, nbins, obsmin, obsmax, ncat, 0, ncat )
             renorm = ROOT.TH2F("model_renorm_%s" % mname, "model_%s" % mname, nbins, obsmin, obsmax, ncat, 0, ncat )
             if options.maxw > 0.:

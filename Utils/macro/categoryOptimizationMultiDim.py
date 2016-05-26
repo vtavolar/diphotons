@@ -388,6 +388,7 @@ def optimizeMultiDim(options,args):
         tmp = ROOT.TFile.Open("/tmp/%s/categoryOptimizationMultiDim_trees_%s.root" % (os.getlogin(),options.label) ,"recreate")
     else:
         tmp = ROOT.TFile.Open("/tmp/%s/categoryOptimizationMultiDim_%s.root" % (os.getlogin(),options.label) ,"recreate")
+        print "Creating tmp file /tmp/%s/categoryOptimizationMultiDim_%s.root" % (os.getlogin(),options.label)
     tmp.cd()
 
 
@@ -747,6 +748,8 @@ def optimizeMultiDim(options,args):
 
     tmpname = tmp.GetName()
     tmp.Close()
+    print "closing tmp file"
+    print commands.getoutput("ls -lrth /tmp/%s" % os.getlogin())
     if options.makeWorkspace:
         if not os.path.exists("%s/workspaces" % options.outdir):
             os.mkdir("%s/workspaces" % options.outdir)
@@ -754,7 +757,7 @@ def optimizeMultiDim(options,args):
             cmd = "%s/makeWorkspace.py -d %s/cat_opt.json -n %d -i %s -o %s/workspaces/ws_ncat%d.root --settings setup.json" % ( wd, options.outdir, int(ncat), tmpname, options.outdir, int(ncat))
             print cmd
             print commands.getoutput(cmd)
-            cmd = "%s/plotDatasets.py  -i %s/workspaces/ws_ncat%d.root -o %s/workspaces/ -n %d" % (wd, options.outdir,  int(ncat), options.outdir,  int(ncat))
+            cmd = "%s/plotDatasets.py  -i %s/workspaces/ws_ncat%d.root -o %s/workspaces/ -n %d --settings setup.json" % (wd, options.outdir,  int(ncat), options.outdir,  int(ncat))
             print cmd
             print commands.getoutput(cmd)
     return ws

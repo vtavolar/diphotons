@@ -27,7 +27,13 @@ def main(options,args):
         else:
             for ibin in range(options.nbins):
                 allcats.append( "bin%d_cat%d" % (ibin,icat) )
-
+    if getattr(options,"subcategories",None):
+        subcats = []
+        for cat in allcats:
+            for catn, catc in options.subcategories:
+                subcats.append("%s_%s" %(catn,cat))
+        allcats = subcats
+                
     for ifile,file in enumerate(options.files):
         fin = ROOT.TFile.Open(file)
         ws = fin.Get("cms_hgg")
@@ -41,7 +47,9 @@ def main(options,args):
         if not mass:
             mass = ws.var("CMS_hgg_mass")
 
+        print allcats
         for cat in allcats:
+            print cat
             if not cat in frames:
                 fframe = mass.frame()
                 dframe = mass.frame()
@@ -51,7 +59,7 @@ def main(options,args):
                 fframe,dframe,txt = frames[cat]
                 
             model = ws.pdf("model_bkg_%s" % cat)
-            
+            print model
             deriv = model.derivative(mass,1)
             objs.append(deriv)
                         
@@ -143,6 +151,11 @@ if __name__ == "__main__":
                           )
 
     (options, args) = parser.parse_args()
+    for st in options.settings:
+        with open(st) as settings:
+            options.__dict__.update(json.loads(settings.read()))
+            settings.close()
+
     sys.argv.append("-b")
     
     pprint(options.__dict__)
